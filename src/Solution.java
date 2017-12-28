@@ -69,19 +69,25 @@ class Solution {
     }
 
     boolean isAllowedShot(Point ball, char direction, int shots) {
-        if (shots > 1) {
-            switch (direction) {
-                case '<':
-                    field[ball.h][ball.w -1]
-            }
-        } else if (shots == 1) {
-            switch (direction) {
-                case '<':
-                    field[ball.h][ball.w - 1]
-            }
-        } else {
-
+        int p = -1;
+        switch (direction) {
+            case '<':
+                p = field[ball.h][ball.w - 1];
+                break;
+            case '^':
+                p = field[ball.h - 1][ball.w];
+                break;
+            case '>':
+                p = field[ball.h][ball.w + 1];
+                break;
+            case 'v':
+                p = field[ball.h + 1][ball.w];
+                break;
         }
+        if (shots > 1) {
+            return ((p == -2) || (p == -3)) && isAllowedShot(new Point(ball.h, ball.w - 1), direction, shots);
+        }
+        return p == -1 || p == -2;
     }
 
     static class Path {
