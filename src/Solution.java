@@ -7,38 +7,38 @@ import java.util.*;
 class Solution {
 
     static Scanner in;
-    static int width;
-    static int height;
-    static int[][] field;
+    static int width = 3;
+    static int height = 3;
+    static int[][] field = {{2, -2, -3}, {-3, -2, -1}, {-2, -1, 1}};
 
     public static void main(String args[]) {
-        in = new Scanner(System.in);
+//        in = new Scanner(System.in);
 
-        width = in.nextInt();
-        height = in.nextInt();
+//        width = in.nextInt();
+//        height = in.nextInt();
 
-        field = new int[height][width];
-
-        for (int i = 0; i < height; i++) {
-            String row = in.next();
-            int j = 0;
-            for (char c : row.toCharArray()) {
-                switch (c) {
-                    case 'H':
-                        field[i][j] = -1;
-                        break;
-                    case '.':
-                        field[i][j] = -2;
-                        break;
-                    case 'X':
-                        field[i][j] = -3;
-                        break;
-                    default:
-                        field[i][j] = Integer.parseInt("" + c);
-                }
-                j++;
-            }
-        }
+//        field = new int[height][width];
+//
+//        for (int i = 0; i < height; i++) {
+//            String row = in.next();
+//            int j = 0;
+//            for (char c : row.toCharArray()) {
+//                switch (c) {
+//                    case 'H':
+//                        field[i][j] = -1;
+//                        break;
+//                    case '.':
+//                        field[i][j] = -2;
+//                        break;
+//                    case 'X':
+//                        field[i][j] = -3;
+//                        break;
+//                    default:
+//                        field[i][j] = Integer.parseInt("" + c);
+//                }
+//                j++;
+//            }
+//        }
         System.out.println(Arrays.deepToString(field));
     }
 
