@@ -1,5 +1,4 @@
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -7,12 +6,19 @@ import java.util.Scanner;
  **/
 class Solution {
 
-    public static void main(String args[]) {
-        Scanner in = new Scanner(System.in);
-        int width = in.nextInt();
-        int height = in.nextInt();
+    static Scanner in;
+    static int width;
+    static int height;
+    static int[][] field;
 
-        int[][] field = new int[height][width];
+    public static void main(String args[]) {
+        in = new Scanner(System.in);
+
+        width = in.nextInt();
+        height = in.nextInt();
+
+        field = new int[height][width];
+
         for (int i = 0; i < height; i++) {
             String row = in.next();
             int j = 0;
@@ -34,7 +40,76 @@ class Solution {
             }
         }
         System.out.println(Arrays.deepToString(field));
+    }
+
+    Map<Point, List<Path>> getReachableHoles(Point ball, int shots) {
+        field[ball.h, ball.w + shots]
+    }
+
+    List<Point> getReachablePositions(Point ball, int shots) {
+        List<Point> list = new LinkedList<Point>();
 
 
+        if (ball.w - shots >= 0) {
+
+        }
+
+        if (ball.w + shots < width) {
+
+        }
+
+        if (ball.h - shots >= 0) {
+
+        }
+
+        if (ball.h + shots < 0) {
+
+        }
+    }
+
+    boolean isAllowedShot(Point ball, char direction, int shots) {
+        if (shots > 1) {
+            switch (direction) {
+                case '<':
+                    field[ball.h][ball.w -1]
+            }
+        } else if (shots == 1) {
+            switch (direction) {
+                case '<':
+                    field[ball.h][ball.w - 1]
+            }
+        } else {
+
+        }
+    }
+
+    static class Path {
+        List<Point> waypoints;
+
+        public Path(List<Point> waypoints) {
+            this.waypoints = waypoints;
+        }
+
+        public int length() {
+            return waypoints.size();
+        }
+    }
+
+    static class Point {
+        int w;
+        int h;
+
+        public Point(int w, int h) {
+            this.w = w;
+            this.h = h;
+        }
+
+        public int getW() {
+            return w;
+        }
+
+        public int getH() {
+            return h;
+        }
     }
 }
