@@ -50,7 +50,7 @@ class Solution {
 
         // TODO: the magic code here:
         List<Ball> balls = ballsPos.entrySet().stream().map((ball_shot) -> {
-            final Map<Point, Set<Path>> reachableHoles = getReachableHoles(ball_shot.getKey(), ball_shot.getValue());
+            final Tree reachableHoles = getReachableHoles(ball_shot.getKey(), ball_shot.getValue());
             return new Ball(ball_shot.getKey().h, ball_shot.getKey().w, ball_shot.getValue(), reachableHoles);
         }).collect(Collectors.toList());
 
