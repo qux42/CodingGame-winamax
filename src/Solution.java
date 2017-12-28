@@ -10,57 +10,81 @@ class Solution {
     static int width = 3;
     static int height = 3;
     static char[][] field = {{'2', '.', 'X'}, {'X', '.', 'H'}, {'.', 'H', '1'}};
+//    static int width; // = 3;
+//    static int height; // = 3;
+//    static char[][] field;// = {{'2', '.', 'X'}, {'X', '.', 'H'}, {'.', 'H', '1'}};
+    static Map<Point, Integer> balls = new HashMap<Point, Integer>();
+
+    static {
+        balls.put(new Point(0,0) , 2);
+        balls.put(new Point(2,2) , 1);
+    }
 
     public static void main(String args[]) {
 //        in = new Scanner(System.in);
-
+//
 //        width = in.nextInt();
 //        height = in.nextInt();
-
-//        field = new int[height][width];
+//
+//        field = new char[height][width];
 //
 //        for (int i = 0; i < height; i++) {
-//            String row = in.next();
-//            int j = 0;
-//            for (char c : row.toCharArray()) {
-//                switch (c) {
-//                    case 'H':
-//                        field[i][j] = -1;
-//                        break;
-//                    case '.':
-//                        field[i][j] = -2;
-//                        break;
-//                    case 'X':
-//                        field[i][j] = -3;
-//                        break;
-//                    default:
-//                        field[i][j] = Integer.parseInt("" + c);
+//            field[i] = in.next().toCharArray();
+//        }
+//
+//        for (int h = 0; h < height; h++) {
+//            char[] row = in.next().toCharArray();
+//
+//            for (int w = 0; w < row.length; w++) {
+//                char c = row[w];
+//
+//                if (c == 'H' || c == '.' || c == 'X') {
+//                    field[h][w] = c;
+//                } else {
+//                    balls.put(new Point(h, w), Integer.parseInt("" + c));
+//                    field[h][w] = c;
 //                }
-//                j++;
 //            }
 //        }
+
+        // TODO: the magic code here:
+        balls.forEach((ball, shots) -> {
+            Map<Point, Set<Path>> reachableHoles = getReachableHoles(new HashMap<>(), new Path(new ArrayList<>()), ball, shots);
+
+            System.out.println(ball +"  "+reachableHoles);
+        });
+
+
         System.out.println(Arrays.deepToString(field));
     }
 
-    void insertOrUpdate(Map<Point, Set<Path>> map, Point p, Path path) {
+    static void insertOrUpdate(Map<Point, Set<Path>> map, Point p, Path path) {
         if (map.containsKey(p)) {
-            map.get(p).add(path);
+
+            System.out.println("test:");
+            Set<Path> paths = map.get(p);
+            paths.add(path);
         } else {
-            map.put(p, Collections.singleton(path));
+            Set<Path> points = new HashSet();
+            points.add(path);
+            map.put(p, points);
         }
     }
 
-    private void merge(Map<Point, Set<Path>> map1, Map<Point, Set<Path>> map2) {
-        map2.forEach((p, lp) -> {
-            if (map1.containsKey(p)) {
-                map1.get(p).addAll(lp);
+    static void merge(Map<Point, Set<Path>> map1, Map<Point, Set<Path>> map2) {
+        map2.forEach((point, listOfPaths) -> {
+            if (map1.containsKey(point)) {
+//                listOfPaths.forEach(l -> insertOrUpdate(map1, point, l));
+                map1.get(point).addAll(listOfPaths);
             } else {
-                map1.put(p, lp);
+                map1.put(point, listOfPaths);
             }
         });
     }
 
-    Map<Point, Set<Path>> getReachableHoles(Map<Point, Set<Path>> closed, Path current, Point ball, int shots) {
+    // TODO: invalide pfade (sich selbst überschneidend) herausfiltern
+    // TODO 2: nicht immer alle pfade für einen ball berechnen, sondern weitere pfade nur auf bedarf berechnen
+    static Map<Point, Set<Path>> getReachableHoles(Map<Point, Set<Path>> closed, Path current, Point ball, int shots) {
         if (shots == 0) {
             return closed;
         }
@@ -76,7 +100,7 @@ class Solution {
         return closed;
     }
 
-    Map<Character, Point> getReachablePositions(Point ball, int shots) {
+    static Map<Character, Point> getReachablePositions(Point ball, int shots) {
         Map<Character, Point> map = new HashMap<Character, Point>();
 
         if (ball.w - shots >= 0 && isAllowedShot(ball, '<', shots)) {
@@ -98,7 +122,7 @@ class Solution {
         return map;
     }
 
-    boolean isAllowedShot(Point ball, char direction, int shots) {
+    static boolean isAllowedShot(Point ball, char direction, int shots) {
         Point nextPos = null;
         switch (direction) {
             case '<':
@@ -122,6 +146,13 @@ class Solution {
     }
 
     static class Path {
+        @Override
+        public String toString() {
+            return "Path {" +
+                    "waypoints=" + waypoints +
+                    '}';
+        }
+
         public final List<Character> waypoints;
 
         public Path(List<Character> waypoints) {
@@ -137,9 +168,32 @@ class Solution {
             copy.add(c);
             return new Path(copy);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Path path = (Path) o;
+            return Objects.equals(waypoints, path.waypoints);
+        }
+
+        @Override
+        public int hashCode() {
+
+            return Objects.hash(waypoints);
+        }
     }
 
     static class Point {
+
+        @Override
+        public String toString() {
+            return "Point {" +
+                    "h=" + h +
+                    ", w=" + w +
+                    '}';
+        }
+
         public final int h;
         public final int w;
 
