@@ -184,14 +184,22 @@ class Solution {
         }
     }
 
+    static class Ball extends Point {
+        public final int shots;
+        public final Map<Point, Set<Path>> reachableHoles;
+
+        public Ball(int h, int w, int shots, Map<Point, Set<Path>> reachableHoles) {
+            super(h, w);
+            this.shots = shots;
+            this.reachableHoles = reachableHoles;
+        }
+    }
+
     static class Point {
 
         @Override
         public String toString() {
-            return "Point {" +
-                    "h=" + h +
-                    ", w=" + w +
-                    '}';
+            return "Point {" + "h=" + h + ", w=" + w + '}';
         }
 
         public final int h;
