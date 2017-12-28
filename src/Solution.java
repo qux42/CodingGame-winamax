@@ -75,47 +75,20 @@ class Solution {
         }
     }
 
-    static void insertOrUpdate(Map<Point, Set<Path>> map, Point p, Path path) {
-        if (map.containsKey(p)) {
-
-            System.out.println("test:");
-            Set<Path> paths = map.get(p);
-            paths.add(path);
-        } else {
-            Set<Path> points = new HashSet();
-            points.add(path);
-            map.put(p, points);
-        }
-    }
-
-    static void merge(Map<Point, Set<Path>> map1, Map<Point, Set<Path>> map2) {
-        map2.forEach((point, listOfPaths) -> {
-            if (map1.containsKey(point)) {
-//                listOfPaths.forEach(l -> insertOrUpdate(map1, point, l));
-                map1.get(point).addAll(listOfPaths);
-            } else {
-                map1.put(point, listOfPaths);
-            }
-        });
-    }
-
     // TODO: invalide pfade (sich selbst überschneidend) herausfiltern
     // TODO 2: nicht immer alle pfade für einen ball berechnen, sondern weitere pfade nur auf bedarf berechnen
     static Tree getReachableHoles(Point ball, int shots) {
-        return new Tree(getReachableHoles2(ball, shots));
-    }
-
-    static Map<Character, Tree> getReachableHoles2(Point ball, int shots) {
         Map<Character, Tree> branches = new HashMap<>();
-        getReachablePositions(ball, shots).forEach((direction, nextPos) -> {
 
+        getReachablePositions(ball, shots).forEach((direction, nextPos) -> {
             if (field[nextPos.h][nextPos.w] == 'H') {
                 branches.put(direction, null);
-            } else {
-                branches.put(direction, new Tree(getReachableHoles2(nextPos, shots - 1)));
+            } else if (shots > 0) {
+                branches.put(direction, getReachableHoles(nextPos, shots - 1));
             }
         });
-        return branches;
+
+        return new Tree(branches);
     }
 
     static Map<Character, Point> getReachablePositions(Point ball, int shots) {
@@ -222,11 +195,45 @@ class Solution {
             return sb.toString();
         }
 
-        public void move(char[][] field) {
+        public Map<Ball, char[][]> move(char[][] field) {
+            Map<Ball, char[][]> map = new HashMap<>();
 
+            reachableHoles.childs.forEach((direction, children) -> {
+                Point nextPos = null;
+                char[][] fieldCopy = Arrays.stream(field).map((el) -> el.clone()).toArray($ -> field.clone());
 
+                switch (direction) {
+                    case '<':
+                        nextPos = new Point(h, w - shots);
+                        for (int i = 0; i < shots; i++) {
+                            field[h][w-i] = '<';
+                        }
+                        break;
+                    case '^':
+                        nextPos = new Point(h - shots, w);
+                        for (int i = 0; i < shots; i++) {
+                            field[h-i][w] = '^';
+                        }
+                        break;
+                    case '>':
+                        nextPos = new Point(h, w + shots);
+                        for (int i = 0; i < shots; i++) {
+                            field[h][w+i] = '>';
+                        }
+                        break;
+                    case 'v':
+                        nextPos = new Point(h + shots, w);
+                        for (int i = 0; i < shots; i++) {
+                            field[h+i][w] = 'v';
+                        }
+                        break;
+                }
+
+                map.put(new Ball(nextPos.h, nextPos.w, shots - 1, children), fieldCopy);
+            });
+
+            return map;
         }
-
     }
 
     static class Point {
