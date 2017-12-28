@@ -9,7 +9,7 @@ class Solution {
     static Scanner in;
     static int width = 3;
     static int height = 3;
-    static int[][] field = {{2, -2, -3}, {-3, -2, -1}, {-2, -1, 1}};
+    static char[][] field = {{'2', '.', 'X'}, {'X', '.', 'H'}, {'.', 'H', '1'}};
 
     public static void main(String args[]) {
 //        in = new Scanner(System.in);
@@ -69,30 +69,26 @@ class Solution {
     }
 
     boolean isAllowedShot(Point ball, char direction, int shots) {
-        int p = -1;
         Point nextPos = null;
         switch (direction) {
             case '<':
                 nextPos = new Point(ball.h, ball.w - 1);
-                p = field[ball.h][ball.w - 1];
                 break;
             case '^':
                 nextPos = new Point(ball.h - 1, ball.w);
-                p = field[ball.h - 1][ball.w];
                 break;
             case '>':
                 nextPos = new Point(ball.h, ball.w + 1);
-                p = field[ball.h][ball.w + 1];
                 break;
             case 'v':
                 nextPos = new Point(ball.h + 1, ball.w);
-                p = field[ball.h + 1][ball.w];
                 break;
         }
+        int valueOnNextPos = field[nextPos.h][nextPos.w];
         if (shots > 1) {
-            return ((p == -2) || (p == -3)) && isAllowedShot(nextPos, direction, shots - 1);
+            return ((valueOnNextPos == '.') || (valueOnNextPos == 'X')) && isAllowedShot(nextPos, direction, shots - 1);
         }
-        return p == -1 || p == -2;
+        return valueOnNextPos == 'H' || valueOnNextPos == '.';
     }
 
     static class Path {
