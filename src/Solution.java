@@ -42,22 +42,38 @@ class Solution {
         System.out.println(Arrays.deepToString(field));
     }
 
-    Map<Point, List<Path>> getReachableHoles(Map<Point, List<Path>> closed, List<Character> current, Point ball, int shots) {
+    void insertOrUpdate(Map<Point, Set<Path>> map, Point p, Path path) {
+        if (map.containsKey(p)) {
+            map.get(p).add(path);
+        } else {
+            map.put(p, Collections.singleton(path));
+        }
+    }
+
+    private void merge(Map<Point, Set<Path>> map1, Map<Point, Set<Path>> map2) {
+        map2.forEach((p, lp) -> {
+            if (map1.containsKey(p)) {
+                map1.get(p).addAll(lp);
+            } else {
+                map1.put(p, lp);
+            }
+        });
+    }
+
+    Map<Point, Set<Path>> getReachableHoles(Map<Point, Set<Path>> closed, Path current, Point ball, int shots) {
         if (shots == 0) {
             return closed;
-        } else {
-            Map<Character, Point> reachablePositions = getReachablePositions(ball, shots);
-
-            for (Map.Entry<Character, Point> pos: reachablePositions.entrySet()) {
-                if (field[pos.getValue().h][pos.getValue().w] == 'H') {
-
-                } else {
-
-                }
-            }
         }
 
-        return null;
+        getReachablePositions(ball, shots).forEach((direction, nextPos) -> {
+            if (field[nextPos.h][nextPos.w] == 'H') {
+                insertOrUpdate(closed, nextPos, current.add(direction));
+            } else {
+                merge(closed, getReachableHoles(closed, current.add(direction), nextPos, shots - 1));
+            }
+        });
+
+        return closed;
     }
 
     Map<Character, Point> getReachablePositions(Point ball, int shots) {
@@ -114,6 +130,12 @@ class Solution {
 
         public int length() {
             return waypoints.size();
+        }
+
+        public Path add(char c) {
+            final ArrayList<Character> copy = new ArrayList<>(waypoints);
+            copy.add(c);
+            return new Path(copy);
         }
     }
 
