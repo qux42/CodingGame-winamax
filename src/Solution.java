@@ -49,22 +49,23 @@ class Solution {
     List<Point> getReachablePositions(Point ball, int shots) {
         List<Point> list = new LinkedList<Point>();
 
-
-        if (ball.w - shots >= 0) {
-
+        if (ball.w - shots >= 0 && isAllowedShot(ball, '<', shots)) {
+            list.add(new Point(ball.h, ball.w - shots));
         }
 
         if (ball.w + shots < width) {
-
+            list.add(new Point(ball.h, ball.w + shots));
         }
 
         if (ball.h - shots >= 0) {
-
+            list.add(new Point(ball.h - shots, ball.w));
         }
 
         if (ball.h + shots < 0) {
-
+            list.add(new Point(ball.h + shots, ball.w));
         }
+
+        return list;
     }
 
     boolean isAllowedShot(Point ball, char direction, int shots) {
@@ -96,10 +97,10 @@ class Solution {
     }
 
     static class Point {
-        int w;
         int h;
+        int w;
 
-        public Point(int w, int h) {
+        public Point(int h, int w) {
             this.w = w;
             this.h = h;
         }
