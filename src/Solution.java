@@ -42,30 +42,44 @@ class Solution {
         System.out.println(Arrays.deepToString(field));
     }
 
-    Map<Point, List<Path>> getReachableHoles(Point ball, int shots) {
-        field[ball.h, ball.w + shots]
+    Map<Point, List<Path>> getReachableHoles(Map<Point, List<Path>> closed, List<Character> current, Point ball, int shots) {
+        if (shots == 0) {
+            return closed;
+        } else {
+            Map<Character, Point> reachablePositions = getReachablePositions(ball, shots);
+
+            for (Map.Entry<Character, Point> pos: reachablePositions.entrySet()) {
+                if (field[pos.getValue().h][pos.getValue().w] == 'H') {
+
+                } else {
+
+                }
+            }
+        }
+
+        return null;
     }
 
-    List<Point> getReachablePositions(Point ball, int shots) {
-        List<Point> list = new LinkedList<Point>();
+    Map<Character, Point> getReachablePositions(Point ball, int shots) {
+        Map<Character, Point> map = new HashMap<Character, Point>();
 
         if (ball.w - shots >= 0 && isAllowedShot(ball, '<', shots)) {
-            list.add(new Point(ball.h, ball.w - shots));
+            map.put('<', new Point(ball.h, ball.w - shots));
         }
 
-        if (ball.w + shots < width) {
-            list.add(new Point(ball.h, ball.w + shots));
+        if (ball.w + shots < width && isAllowedShot(ball, '>', shots)) {
+            map.put('>', new Point(ball.h, ball.w + shots));
         }
 
-        if (ball.h - shots >= 0) {
-            list.add(new Point(ball.h - shots, ball.w));
+        if (ball.h + shots < height && isAllowedShot(ball, 'v', shots)) {
+            map.put('v', new Point(ball.h + shots, ball.w));
         }
 
-        if (ball.h + shots < 0) {
-            list.add(new Point(ball.h + shots, ball.w));
+        if (ball.h - shots >= 0 && isAllowedShot(ball, '^', shots)) {
+            map.put('^', new Point(ball.h - shots, ball.w));
         }
 
-        return list;
+        return map;
     }
 
     boolean isAllowedShot(Point ball, char direction, int shots) {
@@ -92,9 +106,9 @@ class Solution {
     }
 
     static class Path {
-        List<Point> waypoints;
+        public final List<Character> waypoints;
 
-        public Path(List<Point> waypoints) {
+        public Path(List<Character> waypoints) {
             this.waypoints = waypoints;
         }
 
@@ -104,20 +118,12 @@ class Solution {
     }
 
     static class Point {
-        int h;
-        int w;
+        public final int h;
+        public final int w;
 
         public Point(int h, int w) {
             this.w = w;
             this.h = h;
-        }
-
-        public int getW() {
-            return w;
-        }
-
-        public int getH() {
-            return h;
         }
     }
 }
