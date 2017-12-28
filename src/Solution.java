@@ -105,8 +105,8 @@ class Solution {
         return new Tree(getReachableHoles2(ball, shots));
     }
 
-    static Map<Character, AbstractTree> getReachableHoles2(Point ball, int shots) {
-        Map<Character, AbstractTree> branches = new HashMap<>();
+    static Map<Character, Tree> getReachableHoles2(Point ball, int shots) {
+        Map<Character, Tree> branches = new HashMap<>();
         getReachablePositions(ball, shots).forEach((direction, nextPos) -> {
 
             if (field[nextPos.h][nextPos.w] == 'H') {
@@ -245,23 +245,21 @@ class Solution {
         }
     }
 
-    interface AbstractTree {}
 
-    static class Tree implements AbstractTree {
-        private final Map<Character, AbstractTree> childs;
+    static class Tree  {
+        private final Map<Character, Tree> childs;
 
-        public Tree(Map<Character, AbstractTree> childs) {
+        public Tree(Map<Character, Tree> childs) {
             this.childs = childs;
         }
+
+        @Override
+        public String toString() {
+            final StringBuffer sb = new StringBuffer("Tree{");
+            sb.append("childs=").append(childs);
+            sb.append('}');
+            return sb.toString();
+        }
     }
-
-//    static class Leaf implements AbstractTree {
-//        private final char value;
-//
-//        public Leaf(char value) {
-//            this.value = value;
-//        }
-//    }
-
 
 }
