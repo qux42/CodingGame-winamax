@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -10,14 +11,14 @@ class Solution {
     static int width = 3;
     static int height = 3;
     static char[][] field = {{'2', '.', 'X'}, {'X', '.', 'H'}, {'.', 'H', '1'}};
-//    static int width; // = 3;
+    //    static int width; // = 3;
 //    static int height; // = 3;
 //    static char[][] field;// = {{'2', '.', 'X'}, {'X', '.', 'H'}, {'.', 'H', '1'}};
-    static Map<Point, Integer> balls = new HashMap<Point, Integer>();
+    static Map<Point, Integer> ballsPos = new HashMap<Point, Integer>();
 
     static {
-        balls.put(new Point(0,0) , 2);
-        balls.put(new Point(2,2) , 1);
+        ballsPos.put(new Point(0, 0), 2);
+        ballsPos.put(new Point(2, 2), 1);
     }
 
     public static void main(String args[]) {
@@ -48,14 +49,30 @@ class Solution {
 //        }
 
         // TODO: the magic code here:
-        balls.forEach((ball, shots) -> {
-            Map<Point, Set<Path>> reachableHoles = getReachableHoles(new HashMap<>(), new Path(new ArrayList<>()), ball, shots);
+        List<Ball> balls = ballsPos.entrySet().stream().map((ball_shot) -> {
+            final Map<Point, Set<Path>> reachableHoles = getReachableHoles(ball_shot.getKey(), ball_shot.getValue());
+            return new Ball(ball_shot.getKey().h, ball_shot.getKey().w, ball_shot.getValue(), reachableHoles);
+        }).collect(Collectors.toList());
 
-            System.out.println(ball +"  "+reachableHoles);
-        });
-
-
+        System.out.println(balls);
         System.out.println(Arrays.deepToString(field));
+    }
+
+
+    static Set<Move> move(List<Ball> balls, char[][] field) {
+
+
+        return null;
+    }
+
+    static class Move {
+        char[][] field;
+        List<Ball> balls;
+
+        public Move(char[][] field, List<Ball> balls) {
+            this.field = field;
+            this.balls = balls;
+        }
     }
 
     static void insertOrUpdate(Map<Point, Set<Path>> map, Point p, Path path) {
@@ -84,20 +101,21 @@ class Solution {
 
     // TODO: invalide pfade (sich selbst überschneidend) herausfiltern
     // TODO 2: nicht immer alle pfade für einen ball berechnen, sondern weitere pfade nur auf bedarf berechnen
-    static Map<Point, Set<Path>> getReachableHoles(Map<Point, Set<Path>> closed, Path current, Point ball, int shots) {
-        if (shots == 0) {
-            return closed;
-        }
+    static Tree getReachableHoles(Point ball, int shots) {
+        return new Tree(getReachableHoles2(ball, shots));
+    }
 
+    static Map<Character, AbstractTree> getReachableHoles2(Point ball, int shots) {
+        Map<Character, AbstractTree> branches = new HashMap<>();
         getReachablePositions(ball, shots).forEach((direction, nextPos) -> {
+
             if (field[nextPos.h][nextPos.w] == 'H') {
-                insertOrUpdate(closed, nextPos, current.add(direction));
+                branches.put(direction, null);
             } else {
-                merge(closed, getReachableHoles(closed, current.add(direction), nextPos, shots - 1));
+                branches.put(direction, new Tree(getReachableHoles2(nextPos, shots - 1)));
             }
         });
-
-        return closed;
+        return branches;
     }
 
     static Map<Character, Point> getReachablePositions(Point ball, int shots) {
@@ -186,13 +204,29 @@ class Solution {
 
     static class Ball extends Point {
         public final int shots;
-        public final Map<Point, Set<Path>> reachableHoles;
+        public final Tree reachableHoles;
 
-        public Ball(int h, int w, int shots, Map<Point, Set<Path>> reachableHoles) {
+        public Ball(int h, int w, int shots, Tree reachableHoles) {
             super(h, w);
+
             this.shots = shots;
             this.reachableHoles = reachableHoles;
         }
+
+        @Override
+        public String toString() {
+            final StringBuffer sb = new StringBuffer("Ball{");
+            sb.append("shots=").append(shots);
+            sb.append(", reachableHoles=").append(reachableHoles);
+            sb.append('}');
+            return sb.toString();
+        }
+
+        public void move(char[][] field) {
+
+
+        }
+
     }
 
     static class Point {
@@ -210,4 +244,24 @@ class Solution {
             this.h = h;
         }
     }
+
+    interface AbstractTree {}
+
+    static class Tree implements AbstractTree {
+        private final Map<Character, AbstractTree> childs;
+
+        public Tree(Map<Character, AbstractTree> childs) {
+            this.childs = childs;
+        }
+    }
+
+//    static class Leaf implements AbstractTree {
+//        private final char value;
+//
+//        public Leaf(char value) {
+//            this.value = value;
+//        }
+//    }
+
+
 }
