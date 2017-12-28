@@ -70,22 +70,27 @@ class Solution {
 
     boolean isAllowedShot(Point ball, char direction, int shots) {
         int p = -1;
+        Point nextPos = null;
         switch (direction) {
             case '<':
+                nextPos = new Point(ball.h, ball.w - 1);
                 p = field[ball.h][ball.w - 1];
                 break;
             case '^':
+                nextPos = new Point(ball.h - 1, ball.w);
                 p = field[ball.h - 1][ball.w];
                 break;
             case '>':
+                nextPos = new Point(ball.h, ball.w + 1);
                 p = field[ball.h][ball.w + 1];
                 break;
             case 'v':
+                nextPos = new Point(ball.h + 1, ball.w);
                 p = field[ball.h + 1][ball.w];
                 break;
         }
         if (shots > 1) {
-            return ((p == -2) || (p == -3)) && isAllowedShot(new Point(ball.h, ball.w - 1), direction, shots);
+            return ((p == -2) || (p == -3)) && isAllowedShot(nextPos, direction, shots - 1);
         }
         return p == -1 || p == -2;
     }
