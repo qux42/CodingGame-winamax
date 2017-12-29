@@ -7,61 +7,47 @@ import java.util.stream.Stream;
  * the standard input according to the problem statement.
  **/
 class Solution {
-
-    //    static Scanner in;
-//    static int width = 3;
-//    static int height = 3;
-//    static char[][] field = {{'2', '.', 'X'}, {'X', '.', 'H'}, {'.', 'H', '1'}};
-    private static int width = 6;
-    private static int height = 6;
-
-
-    //    static int width; // = 3;
-//    static int height; // = 3;
-//    static char[][] field;// = {{'2', '.', 'X'}, {'X', '.', 'H'}, {'.', 'H', '1'}};
-    private static Map<Point, Integer> ballsPos = new HashMap<>();
-
-    static {
-//        ballsPos.put(new Point(0, 0), 2);
-//        ballsPos.put(new Point(2, 2), 1);
-
-        ballsPos.put(new Point(5, 0), 3);
-        ballsPos.put(new Point(0, 0), 3);
-        ballsPos.put(new Point(1, 1), 2);
-        ballsPos.put(new Point(0, 5), 2);
-        ballsPos.put(new Point(3, 3), 2);
-
-
-    }
+    private static int width;
+    private static int height;
+    static double cnt = 0;
+    static long ms1 = 0;
 
     public static void main(String args[]) {
-        char[][] field = {{'3', '.', '.', 'H', '.', '2'}, {'.', '2', '.', '.', 'H', '.'}, {'.', '.', 'H', '.', '.', 'H'}, {'.', 'X', '.', '2', '.', 'X'}, {'.', '.', '.', '.', '.', '.'}, {'3', '.', '.', 'H', '.', '.'}};
+        Map<Point, Integer> ballsPos = new HashMap<>();
+        String input = "40 10\n" +
+                "5.....X..3...H................HX.....4XH\n" +
+                "......X....XXXXX..............XX..2..HXX\n" +
+                "......4H........X..4H.H...3..H....4.....\n" +
+                ".HH.........H5XX.....H................5.\n" +
+                "X............XXXX....X.244.2.X..H.5.....\n" +
+                "X.H..........XXXX.......44...X.........5\n" +
+                "..............XX4.......3...H.........3.\n" +
+                "...3......3..X........X....H.H..........\n" +
+                ".......HH.....XXXXX.H.X.......XX....H.XX\n" +
+                "3........5....H.H.....X.......HX......XH\n";
 
-//        in = new Scanner(System.in);
+        Scanner in = new Scanner(input);
+//        Scanner in = new Scanner(System.in);
 //
-//        width = in.nextInt();
-//        height = in.nextInt();
-//
-//        field = new char[height][width];
-//
-////        for (int i = 0; i < height; i++) {
-////            field[i] = in.next().toCharArray();
-////        }
-//
-//        for (int h = 0; h < height; h++) {
-//            char[] row = in.next().toCharArray();
-//
-//            for (int w = 0; w < row.length; w++) {
-//                char c = row[w];
-//
-//                if (c == 'H' || c == '.' || c == 'X') {
-//                    field[h][w] = c;
-//                } else {
-//                    ballsPos.put(new Point(h, w), Integer.parseInt("" + c));
-//                    field[h][w] = c;
-//                }
-//            }
-//        }
+        width = in.nextInt();
+        height = in.nextInt();
+
+        char[][] field = new char[height][width];
+
+        for (int h = 0; h < height; h++) {
+            char[] row = in.next().toCharArray();
+
+            for (int w = 0; w < row.length; w++) {
+                char c = row[w];
+
+                if (c == 'H' || c == '.' || c == 'X') {
+                    field[h][w] = c;
+                } else {
+                    ballsPos.put(new Point(h, w), Integer.parseInt("" + c));
+                    field[h][w] = c;
+                }
+            }
+        }
 
         System.out.println(height);
         System.out.println(width);
@@ -78,8 +64,21 @@ class Solution {
 
 
 //        System.out.println(move);
+        long b = System.currentTimeMillis();
         Set<Move> moves = doMagic(Collections.singleton(new Move(field, balls)));
+        ms1 += System.currentTimeMillis() - b;
+        cnt += 1;
         System.out.println(moves);
+        System.err.println(ms1 / cnt);
+        for (int i = 0; i < 1000; i++) {
+            b = System.currentTimeMillis();
+
+            doMagic(Collections.singleton(new Move(field, balls)));
+            ms1 += System.currentTimeMillis() - b;
+            cnt += 1;
+            System.err.println(ms1 / cnt);
+
+        }
     }
 
 
@@ -160,7 +159,7 @@ class Solution {
     static class Ball extends Point {
         final int shots;
         final boolean finished;
-
+        Tree cache = null;
 
         Ball(int h, int w, int shots, boolean finished) {
             super(h, w);
@@ -180,6 +179,9 @@ class Solution {
 
 
         Tree getReachableHoles(char[][] field) {
+//            if(cache != null){
+//                return cache;
+//            }
             Map<DIRECTION, Tree> branches = new HashMap<>();
             getReachablePositions(field).forEach((direction, nextPos) -> {
                 if (nextPos.finished) {
@@ -188,25 +190,21 @@ class Solution {
                     branches.put(direction, nextPos.getReachableHoles(field));
                 }
             });
-            return new Tree(branches);
+            cache = new Tree(branches);
+            return cache;
         }
 
         private Map<DIRECTION, Ball> getReachablePositions(char[][] field) {
-
             Map<DIRECTION, Ball> map = new HashMap<>();
-
             if (w - shots >= 0 && isAllowedShot(DIRECTION.LEFT, field)) {
                 map.put(DIRECTION.LEFT, new Ball(h, w - shots, shots - 1, field));
             }
-
             if (w + shots < width && isAllowedShot(DIRECTION.RIGHT, field)) {
                 map.put(DIRECTION.RIGHT, new Ball(h, w + shots, shots - 1, field));
             }
-
             if (h + shots < height && isAllowedShot(DIRECTION.DOWN, field)) {
                 map.put(DIRECTION.DOWN, new Ball(h + shots, w, shots - 1, field));
             }
-
             if (h - shots >= 0 && isAllowedShot(DIRECTION.UP, field)) {
                 map.put(DIRECTION.UP, new Ball(h - shots, w, shots - 1, field));
             }
