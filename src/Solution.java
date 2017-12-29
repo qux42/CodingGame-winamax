@@ -2,34 +2,26 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Auto-generated code below aims at helping you parse
- * the standard input according to the problem statement.
- **/
 class Solution {
     private static int width;
     private static int height;
-    static double cnt = 0;
-    static long ms1 = 0;
+    private static final String INPUT = "40 10\n" +
+            "5.....X..3...H................HX.....4XH\n" +
+            "......X....XXXXX..............XX..2..HXX\n" +
+            "......4H........X..4H.H...3..H....4.....\n" +
+            ".HH.........H5XX.....H................5.\n" +
+            "X............XXXX....X.244.2.X..H.5.....\n" +
+            "X.H..........XXXX.......44...X.........5\n" +
+            "..............XX4.......3...H.........3.\n" +
+            "...3......3..X........X....H.H..........\n" +
+            ".......HH.....XXXXX.H.X.......XX....H.XX\n" +
+            "3........5....H.H.....X.......HX......XH";
 
     public static void main(String args[]) {
         Map<Point, Integer> ballsPos = new HashMap<>();
-//        String input = "40 10\n" +
-//                "5.....X..3...H................HX.....4XH\n" +
-//                "......X....XXXXX..............XX..2..HXX\n" +
-//                "......4H........X..4H.H...3..H....4.....\n" +
-//                ".HH.........H5XX.....H................5.\n" +
-//                "X............XXXX....X.244.2.X..H.5.....\n" +
-//                "X.H..........XXXX.......44...X.........5\n" +
-//                "..............XX4.......3...H.........3.\n" +
-//                "...3......3..X........X....H.H..........\n" +
-//                ".......HH.....XXXXX.H.X.......XX....H.XX\n" +
-//                "3........5....H.H.....X.......HX......XH\n";
-String input = "2 1\n" +
-        "1H";
-        Scanner in = new Scanner(input);
-//        Scanner in = new Scanner(System.in);
-//
+
+
+        Scanner in = "true".equals(args[0]) ? new Scanner(INPUT) : new Scanner(System.in);
         width = in.nextInt();
         height = in.nextInt();
 
@@ -57,18 +49,18 @@ String input = "2 1\n" +
 
         List<Ball> balls = ballsPos.entrySet().stream().map((ball_shot) -> {
 //            final Tree reachableHoles = getReachableHoles(ball_shot.getKey(), ball_shot.getValue(),);
-            return new Ball(ball_shot.getKey().h, ball_shot.getKey().w, ball_shot.getValue(), false);
+            Ball ball = new Ball(ball_shot.getKey().h, ball_shot.getKey().w, ball_shot.getValue(), false);
+//            System.out.println(ball.getReachableHoles(field, null));
+            return ball;
         }).collect(Collectors.toList());
 
-//        System.out.println("Balls: " + balls);
+//        System.out.println("ball: " + balls.get(0));
+//        System.out.println("Balls: " + balls.get(0).getReachableHoles(field, null));
 //        System.out.println(Arrays.deepToString(field));
 
 
 //        System.out.println(move);
-        long b = System.currentTimeMillis();
-        Set<Move> moves = doMagic(Collections.singleton(new Move(field, balls)), field);
-        ms1 += System.currentTimeMillis() - b;
-        cnt += 1;
+        Set<Move> moves = doMagic(Collections.singleton(new Move(field, balls, false)), field);
         System.out.println(moves.toArray()[0]);
 //        System.err.println(ms1 / cnt);
 //        for (int i = 0; i < 1000; i++) {
@@ -84,30 +76,15 @@ String input = "2 1\n" +
 
 
     private static Set<Move> doMagic(Set<Move> moves, char[] field) {
-        Set<Move> s = new HashSet<>();
-
-
         if (moves.size() <= 1) {
-
-            int size = moves.stream().flatMap(m -> m.balls.stream()).filter(b -> !b.finished).collect(Collectors.toList()).size();
-//            System.out.println(size);
-            if (size == 0) {
+            if (moves.stream().allMatch(m -> m.finished)) {
                 return moves;
             }
         }
+        Set<Move> s = new HashSet<>();
         for (Move m : moves) {
-            if (!m.balls.isEmpty()) {
-
-                if (m.balls.stream().filter(b -> b.shots != 0).collect(Collectors.toList()).size() == 0) {
-                    System.err.println(moves);
-                    s.addAll(moves);
-                    return s;
-                }
-                char[] fieldCopy = deepCopy(m.field);
-
-                Set<Move> move1 = move(m.balls.get(0), m.balls.subList(1, m.balls.size()), fieldCopy, field);
-                s.addAll(move1);
-            }
+            Set<Move> move1 = move(m.balls.get(0), m.balls.subList(1, m.balls.size()), m.field, field);
+            s.addAll(move1);
 
         }
         return doMagic(s, field);
@@ -120,11 +97,10 @@ String input = "2 1\n" +
         Set<Move> move = new HashSet<>();
         m.forEach((nextBall, f) -> {
             if (restBalls.isEmpty()) {
-                move.add(new Move(f, Stream.of(nextBall).collect(Collectors.toList())
-                ));
+                move.add(new Move(f, Stream.of(nextBall).collect(Collectors.toList()), nextBall.finished));
             } else {
                 Set<Move> move1 = move(restBalls.get(0), restBalls.subList(1, restBalls.size()), f, field2);
-                move1.forEach(t -> t.balls.add(nextBall));
+                move1.forEach(t -> t.addBall(nextBall));
                 move.addAll(move1);
             }
         });
@@ -136,10 +112,17 @@ String input = "2 1\n" +
     static class Move {
         char[] field;
         List<Ball> balls;
+        boolean finished;
 
-        Move(char[] field, List<Ball> balls) {
+        Move(char[] field, List<Ball> balls, boolean finished) {
             this.field = field;
             this.balls = balls;
+            this.finished = finished;
+        }
+
+        void addBall(Ball ball) {
+            balls.add(ball);
+            finished = finished && ball.finished;
         }
 
         @Override
@@ -176,34 +159,38 @@ String input = "2 1\n" +
             this(h, w, shots, field[h * width + w] == 'H');
         }
 
-        Tree getReachableHoles(char[] field) {
-            if(cache != null){
+        Tree getReachableHoles(char[] field, DIRECTION dir) {
+            if (cache != null) {
                 return cache;
             }
             Map<DIRECTION, Tree> branches = new HashMap<>();
-            getReachablePositions(field).forEach((direction, nextPos) -> {
+            getReachablePositions(field, dir).forEach((direction, nextPos) -> {
                 if (nextPos.finished) {
                     branches.put(direction, new Tree(Collections.emptyMap()));
                 } else if (shots > 1) {
-                    branches.put(direction, nextPos.getReachableHoles(field));
+                    Tree reachableHoles = nextPos.getReachableHoles(field, direction);
+                    if (!reachableHoles.childs.isEmpty()) {
+                        branches.put(direction, reachableHoles);
+                    }
                 }
             });
+//            System.out.println(branches);
             cache = new Tree(branches);
             return cache;
         }
 
-        private Map<DIRECTION, Ball> getReachablePositions(char[] field) {
+        private Map<DIRECTION, Ball> getReachablePositions(char[] field, DIRECTION dir) {
             Map<DIRECTION, Ball> map = new HashMap<>();
-            if (w - shots >= 0 && isAllowedShot(DIRECTION.LEFT, field)) {
+            if (dir != DIRECTION.RIGHT && w - shots >= 0 && isAllowedShot(DIRECTION.LEFT, field)) {
                 map.put(DIRECTION.LEFT, new Ball(h, w - shots, shots - 1, field));
             }
-            if (w + shots < width && isAllowedShot(DIRECTION.RIGHT, field)) {
+            if (dir != DIRECTION.LEFT && w + shots < width && isAllowedShot(DIRECTION.RIGHT, field)) {
                 map.put(DIRECTION.RIGHT, new Ball(h, w + shots, shots - 1, field));
             }
-            if (h + shots < height && isAllowedShot(DIRECTION.DOWN, field)) {
+            if (dir != DIRECTION.UP && h + shots < height && isAllowedShot(DIRECTION.DOWN, field)) {
                 map.put(DIRECTION.DOWN, new Ball(h + shots, w, shots - 1, field));
             }
-            if (h - shots >= 0 && isAllowedShot(DIRECTION.UP, field)) {
+            if (dir != DIRECTION.DOWN && h - shots >= 0 && isAllowedShot(DIRECTION.UP, field)) {
                 map.put(DIRECTION.UP, new Ball(h - shots, w, shots - 1, field));
             }
             return map;
@@ -244,9 +231,10 @@ String input = "2 1\n" +
 
             Map<Ball, char[]> map = new HashMap<>();
 
-            getReachableHoles(field2).childs.forEach((direction, children) -> {
+            Tree reachableHoles = getReachableHoles(field2, null);
+            reachableHoles.childs.forEach((direction, children) -> {
                 Point nextPos = null;
-                char[] fieldCopy = deepCopy(field);
+                char[] fieldCopy = field.clone();
                 boolean isAllowed = isAllowedShot(this, direction, shots, field);
                 if (!isAllowed) {
                     return;
@@ -279,7 +267,9 @@ String input = "2 1\n" +
                 }
                 boolean finished = fieldCopy[nextPos.h * width + nextPos.w] == 'H';
                 fieldCopy[nextPos.h * width + nextPos.w] = Character.forDigit(shots - 1, 10);
-                map.put(new Ball(nextPos.h, nextPos.w, shots - 1, finished), fieldCopy);
+                Ball k = new Ball(nextPos.h, nextPos.w, shots - 1, finished);
+                k.cache = reachableHoles.childs.get(direction);
+                map.put(k, fieldCopy);
 
             });
 
@@ -316,15 +306,27 @@ String input = "2 1\n" +
             this.childs = childs;
         }
 
+        LinkedList<StringBuilder> mkString() {
+            LinkedList<StringBuilder> r = new LinkedList<>();
+            childs.forEach((a, b) -> {
+                LinkedList<StringBuilder> strings = b.mkString();
+                if (strings.isEmpty()) {
+                    strings.add(new StringBuilder().append(a.value));
+                } else {
+                    strings.forEach(s -> s.append(a.value));
+                }
+                r.addAll(strings);
+            });
+            return r;
+        }
+
         @Override
         public String toString() {
-            return "Tree{" + "childs=" + childs +
-                    '}';
-        }
-    }
+            StringBuilder s = new StringBuilder();
+            mkString().forEach(t -> s.append(t).append("\n"));
 
-    static char[] deepCopy(char[] field) {
-        return field.clone();
+            return s.toString();
+        }
     }
 
     enum DIRECTION {
