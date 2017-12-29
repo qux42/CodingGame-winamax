@@ -1,5 +1,6 @@
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -7,15 +8,12 @@ import java.util.stream.Collectors;
  **/
 class Solution {
 
-//    static Scanner in;
+    //    static Scanner in;
 //    static int width = 3;
 //    static int height = 3;
 //    static char[][] field = {{'2', '.', 'X'}, {'X', '.', 'H'}, {'.', 'H', '1'}};
-
-
     private static int width = 6;
     private static int height = 6;
-    private static char[][] field = {{'3', '.', '.', 'H', '.', '2'}, {'.', '2', '.', '.', 'H', '.'}, {'.', '.', 'H', '.', '.', 'H'}, {'.', 'X', '.', '2', '.', 'X'}, {'.', '.', '.', '.', '.', '.'}, {'3', '.', '.', 'H', '.', '.'}};
 
 
     //    static int width; // = 3;
@@ -37,6 +35,8 @@ class Solution {
     }
 
     public static void main(String args[]) {
+        char[][] field = {{'3', '.', '.', 'H', '.', '2'}, {'.', '2', '.', '.', 'H', '.'}, {'.', '.', 'H', '.', '.', 'H'}, {'.', 'X', '.', '2', '.', 'X'}, {'.', '.', '.', '.', '.', '.'}, {'3', '.', '.', 'H', '.', '.'}};
+
 //        in = new Scanner(System.in);
 //
 //        width = in.nextInt();
@@ -63,8 +63,8 @@ class Solution {
 //            }
 //        }
 
-//        System.out.println(height);
-//        System.out.println(width);
+        System.out.println(height);
+        System.out.println(width);
         System.out.println(Arrays.deepToString(field));
 //        System.out.println(ballsPos);
 
@@ -75,17 +75,25 @@ class Solution {
 
         System.out.println("Balls: " + balls);
 //        System.out.println(Arrays.deepToString(field));
-        Set<Move> move = move(balls.get(0), balls.subList(1, balls.size()), field);
+
+
 //        System.out.println(move);
-        Set<Move> moves = doMagic(move);
-        System.out.println(moves.toArray()[0]);
+        Set<Move> moves = doMagic(Collections.singleton(new Move(field, balls)));
+        System.out.println(moves);
     }
 
 
     private static Set<Move> doMagic(Set<Move> moves) {
         Set<Move> s = new HashSet<>();
+
+
         if (moves.size() <= 1) {
-            return moves;
+
+            int size = moves.stream().flatMap(m -> m.balls.stream()).filter(b -> !b.finished).collect(Collectors.toList()).size();
+            System.out.println(size);
+            if (size == 0) {
+                return moves;
+            }
         }
         for (Move m : moves) {
             if (!m.balls.isEmpty()) {
@@ -112,9 +120,8 @@ class Solution {
         Set<Move> move = new HashSet<>();
         m.forEach((nextBall, f) -> {
             if (restBalls.isEmpty()) {
-                ArrayList<Ball> objects = new ArrayList<>();
-                objects.add(nextBall);
-                move.add(new Move(f, objects));
+                move.add(new Move(f, Stream.of(nextBall).collect(Collectors.toList())
+                ));
             } else {
                 Set<Move> move1 = move(restBalls.get(0), restBalls.subList(1, restBalls.size()), f);
                 move1.forEach(t -> t.balls.add(nextBall));
@@ -139,8 +146,7 @@ class Solution {
         public String toString() {
             StringBuilder s = new StringBuilder();
             for (char[] aField : field) {
-                for (char anAField : aField) {
-                    char c = anAField;
+                for (char c : aField) {
                     if (c != '<' && c != '>' && c != '^' && c != 'v') c = '.';
                     s.append(c);
                 }
@@ -148,33 +154,6 @@ class Solution {
             }
             return s.toString();
         }
-    }
-
-    // TODO: invalide pfade (sich selbst überschneidend) herausfiltern
-    // TODO 2: nicht immer alle pfade für einen ball berechnen, sondern weitere pfade nur auf bedarf berechnen
-
-
-    private static boolean isAllowedShot(Point ball, DIRECTION direction, int shots) {
-        Point nextPos = null;
-        switch (direction) {
-            case LEFT:
-                nextPos = new Point(ball.h, ball.w - 1);
-                break;
-            case UP:
-                nextPos = new Point(ball.h - 1, ball.w);
-                break;
-            case RIGHT:
-                nextPos = new Point(ball.h, ball.w + 1);
-                break;
-            case DOWN:
-                nextPos = new Point(ball.h + 1, ball.w);
-                break;
-        }
-        int valueOnNextPos = field[nextPos.h][nextPos.w];
-        if (shots > 1) {
-            return ((valueOnNextPos == '.') || (valueOnNextPos == 'X')) && isAllowedShot(nextPos, direction, shots - 1);
-        }
-        return valueOnNextPos == 'H' || valueOnNextPos == '.';
     }
 
 
@@ -190,9 +169,6 @@ class Solution {
             this.finished = finished;
         }
 
-        Ball(Point p, int shots, boolean finished) {
-            this(p.h, p.w, shots, finished);
-        }
 
         Ball(int h, int w, int shots) {
             this(h, w, shots, false);
@@ -204,116 +180,111 @@ class Solution {
 
 
         Tree getReachableHoles(char[][] field) {
-            return getReachableHoles(this, shots, field);
-        }
-
-        Tree getReachableHoles(Point ball, int shots, char[][] field) {
             Map<DIRECTION, Tree> branches = new HashMap<>();
-
-            getReachablePositions(ball, shots, field).forEach((direction, nextPos) -> {
+            getReachablePositions(field).forEach((direction, nextPos) -> {
                 if (nextPos.finished) {
                     branches.put(direction, new Tree(Collections.emptyMap()));
                 } else if (shots > 1) {
-                    branches.put(direction, getReachableHoles(nextPos, shots - 1, field));
+                    branches.put(direction, nextPos.getReachableHoles(field));
                 }
             });
-
             return new Tree(branches);
         }
 
-        private Map<DIRECTION, Ball> getReachablePositions(Point ball, int shots, char[][] field) {
+        private Map<DIRECTION, Ball> getReachablePositions(char[][] field) {
 
             Map<DIRECTION, Ball> map = new HashMap<>();
 
-            if (ball.w - shots >= 0 && isAllowedShot(ball, DIRECTION.LEFT, shots)) {
-
-                map.put(DIRECTION.LEFT, new Ball(ball.h, ball.w - shots, shots - 1, field));
+            if (w - shots >= 0 && isAllowedShot(DIRECTION.LEFT, field)) {
+                map.put(DIRECTION.LEFT, new Ball(h, w - shots, shots - 1, field));
             }
 
-            if (ball.w + shots < width && isAllowedShot(ball, DIRECTION.RIGHT, shots)) {
-                map.put(DIRECTION.RIGHT, new Ball(ball.h, ball.w + shots, shots - 1, field));
+            if (w + shots < width && isAllowedShot(DIRECTION.RIGHT, field)) {
+                map.put(DIRECTION.RIGHT, new Ball(h, w + shots, shots - 1, field));
             }
 
-            if (ball.h + shots < height && isAllowedShot(ball, DIRECTION.DOWN, shots)) {
-                map.put(DIRECTION.DOWN, new Ball(ball.h + shots, ball.w, shots - 1, field));
+            if (h + shots < height && isAllowedShot(DIRECTION.DOWN, field)) {
+                map.put(DIRECTION.DOWN, new Ball(h + shots, w, shots - 1, field));
             }
 
-            if (ball.h - shots >= 0 && isAllowedShot(ball, DIRECTION.UP, shots)) {
-                map.put(DIRECTION.UP, new Ball(ball.h - shots, ball.w, shots - 1, field));
+            if (h - shots >= 0 && isAllowedShot(DIRECTION.UP, field)) {
+                map.put(DIRECTION.UP, new Ball(h - shots, w, shots - 1, field));
             }
             return map;
         }
 
-        Map<Ball, char[][]> move(char[][] field) {
-            Tree reachableHoles = getReachableHoles(field);
-            Map<Ball, char[][]> map = new HashMap<>();
-            if (finished) {
-                map.put(this, field);
-                return map;
+        private boolean isAllowedShot(DIRECTION direction, char[][] field) {
+            return isAllowedShot(this, direction, shots, field);
+        }
 
+        private boolean isAllowedShot(Point ball, DIRECTION direction, int shots, char[][] field) {
+            Point nextPos = null;
+            switch (direction) {
+                case LEFT:
+                    nextPos = new Point(ball.h, ball.w - 1);
+                    break;
+                case UP:
+                    nextPos = new Point(ball.h - 1, ball.w);
+                    break;
+                case RIGHT:
+                    nextPos = new Point(ball.h, ball.w + 1);
+                    break;
+                case DOWN:
+                    nextPos = new Point(ball.h + 1, ball.w);
+                    break;
             }
-            reachableHoles.childs.forEach((direction, children) -> {
+            int valueOnNextPos = field[nextPos.h][nextPos.w];
+            if (shots > 1) {
+                return ((valueOnNextPos == '.') || (valueOnNextPos == 'X')) && isAllowedShot(nextPos, direction, shots - 1, field);
+            }
+            return valueOnNextPos == 'H' || valueOnNextPos == '.';
+        }
+
+        Map<Ball, char[][]> move(char[][] field) {
+            if (finished) {
+                return Collections.singletonMap(this, field);
+            }
+
+
+            Map<Ball, char[][]> map = new HashMap<>();
+
+            getReachableHoles(field).childs.forEach((direction, children) -> {
                 Point nextPos = null;
                 char[][] fieldCopy = deepCopy(field);
-                boolean ok = true;
-                char f = '0';
+                boolean isAllowed = isAllowedShot(this, direction, shots, field);
+                if (!isAllowed) {
+                    return;
+                }
                 switch (direction) {
                     case LEFT:
                         nextPos = new Point(h, w - shots);
                         for (int i = 0; i < shots; i++) {
-                            char c = fieldCopy[h][w - i];
-                            if (c == '.' || c == 'X' || c == 'H' || i == 0) {
-                                fieldCopy[h][w - i] = '<';
-                            } else {
-                                ok = false;
-                            }
-                            f = fieldCopy[h][w - shots];
-                            fieldCopy[h][w - shots] = Character.forDigit(shots - 1, 10);
+                            fieldCopy[h][w - i] = direction.value;
                         }
                         break;
                     case UP:
                         nextPos = new Point(h - shots, w);
                         for (int i = 0; i < shots; i++) {
-                            char c = fieldCopy[h - i][w];
-                            if (c == '.' || c == 'X' || c == 'H' || i == 0) {
-                                fieldCopy[h - i][w] = '^';
-                            } else {
-                                ok = false;
-                            }
+                            fieldCopy[h - i][w] = direction.value;
                         }
-                        f = fieldCopy[h - shots][w];
-                        fieldCopy[h - shots][w] = Character.forDigit(shots - 1, 10);
                         break;
                     case RIGHT:
                         nextPos = new Point(h, w + shots);
                         for (int i = 0; i < shots; i++) {
-                            char c = fieldCopy[h][w + i];
-                            if (c == '.' || c == 'X' || c == 'H' || i == 0) {
-                                fieldCopy[h][w + i] = '>';
-                            } else {
-                                ok = false;
-                            }
+                            fieldCopy[h][w + i] = direction.value;
                         }
-                        f = fieldCopy[h][w + shots];
-                        fieldCopy[h][w + shots] = Character.forDigit(shots - 1, 10);
                         break;
                     case DOWN:
                         nextPos = new Point(h + shots, w);
                         for (int i = 0; i < shots; i++) {
-                            char c = fieldCopy[h + i][w];
-                            if (c == '.' || c == 'X' || c == 'H' || i == 0) {
-                                fieldCopy[h + i][w] = 'v';
-                            } else {
-                                ok = false;
-                            }
+                            fieldCopy[h + i][w] = direction.value;
                         }
-                        f = fieldCopy[h + shots][w];
-                        fieldCopy[h + shots][w] = Character.forDigit(shots - 1, 10);
                         break;
                 }
-                if (ok && (f == '.' || f == 'H')) {
-                    map.put(new Ball(nextPos.h, nextPos.w, shots - 1, f == 'H'), fieldCopy);
-                }
+                boolean finished = fieldCopy[nextPos.h][nextPos.w] == 'H';
+                fieldCopy[nextPos.h][nextPos.w] = Character.forDigit(shots - 1, 10);
+                map.put(new Ball(nextPos.h, nextPos.w, shots - 1, finished), fieldCopy);
+
             });
 
             return map;
@@ -366,19 +337,10 @@ class Solution {
         UP('^'),
         DOWN('v');
 
-        private final char c;
-
-//        public static DIRECTION fromString(char c) {
-//            for (DIRECTION b : DIRECTION.values()) {
-//                if (b.c == c) {
-//                    return b;
-//                }
-//            }
-//            throw new RuntimeException("cannot cast Direction");
-//        }
+        private final char value;
 
         DIRECTION(char c) {
-            this.c = c;
+            this.value = c;
         }
     }
 
